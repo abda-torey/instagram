@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block login_menu %}
+  {% if user %}
+    <li class="nav-item">
+      <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #141212;" id="logout">Logout</button>
+    </li>
+  {% elif not user %}
+    <li class="nav-item">
+      <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #0e0b0b;" id="logout">Login</button>
+    </li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h1>Create Post</h1>
+    </div>
+    <div class="card-body">
+      <form method="post" action="/create_post" enctype="multipart/form-data">
+        <!-- Post Image -->
+        <div class="form-group">
+          <label for="postImage">Image</label>
+          <input type="file" class="form-control-file" accept=".png, .jpg, .jpeg" id="postImage" name="postImage" accept="image/*" required>
+        </div>
+        <!-- Post Caption -->
+        <div class="form-group">
+          <label for="postCaption">Caption</label>
+          <input type="text" class="form-control" id="postCaption" name="postCaption" required>
+        </div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

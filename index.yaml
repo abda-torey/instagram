@@ -1,0 +1,5 @@
+indexes:
+  - kind: DummyData
+    properties:
+      - name: boolean
+      - name: id
