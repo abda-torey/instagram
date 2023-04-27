@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block navfollow %}
+<ul class="navbar-nav mx-auto">
+    <li class="nav-item followList">
+        <a class="nav-link" href="#"><p><strong>Followers:</strong> 100</p></a>
+    </li>
+    <li class="nav-item followList">
+        <a class="nav-link" href="#"><p><strong>Following:</strong> 50</p></a>
+    </li>
+</ul>
+{% endblock %}
+{% block content %}
+  <div class="container mt-5">
+    <hr>
+
+    <div class="row">
+      {% for post in posts %}
+        <div class="col-md-5">
+          <div class="card mb-3">
+            <img src="{{ post.image_url }}" class="card-img-top">
+            <div class="card-body">
+              <h5 class="card-title">{{ post.caption }}</h5>
+              <p class="card-text">Posted {{ post.created_at|timesince }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

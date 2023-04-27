@@ -1,5 +1,6 @@
 indexes:
-  - kind: DummyData
-    properties:
-      - name: boolean
-      - name: id
+- kind: Post
+  properties:
+  - name: user_id
+  - name: created_at
+    direction: desc

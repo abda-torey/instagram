@@ -37,7 +37,7 @@ window.addEventListener("load", function () {
         document.cookie = "name=" + name;
         console.log("Signed in as ", user.displayName, user.email);
         user.getIdToken().then(function (token) {
-          document.cookie = "token=" + token;
+          document.cookie = "token=" + token + ";path=/";
         });
       } else {
         var ui = new firebaseui.auth.AuthUI(firebase.auth());
