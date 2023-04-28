@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block login_menu %}
-  {% if user %}
+  {% if userDetails %}
     <li class="nav-item">
       <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #141212;" id="logout">Logout</button>
     </li>
-  {% elif not user %}
+  {% elif not userDetails %}
     <li class="nav-item">
       <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #0e0b0b;" id="logout">Login</button>
     </li>

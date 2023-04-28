@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block username %}
 <li class="nav-item">
-    <a class="nav-link" href="{{url_for('displayProfile')}}">{{user.name}}</a>
+    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.name}}</a>
 </li>
 {% endblock %}
 {% block login_menu %}
@@ -9,7 +9,7 @@
 <li class="nav-item">
     <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #141212;" id="logout">Logout</button>
  </li>
-{% elif not user %}
+{% elif not userDetails %}
 <li class="nav-item">
     <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #0e0b0b;" id="logout">Login</button>
  </li>

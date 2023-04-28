@@ -50,6 +50,28 @@ def format_timesince(dt, default='just now'):
 app.jinja_env.filters['timesince'] = format_timesince
 
 
+def get_posts_for_user_and_following(user_id):
+    following = User.get_following(user_id)
+    following.append(user_id)  # Include user's own posts as well
+    posts = []
+    for user in following:
+        user_key = datastore_client.key('Users', user)
+        query = datastore_client.query(kind='Post')
+        query.add_filter('user_id', '=', user_key)
+        query.order = ['-created_at']
+        posts = list(query.fetch())
+        for post in posts:
+            # Get the blob name from the datastore entity
+            blob_name = post.get('image_blob')
+            if blob_name:
+                blob = storage_client.bucket(
+                    PROJECT_STORAGE_BUCKET).get_blob(blob_name)
+                expiration = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+                post['image_url'] = blob.generate_signed_url(
+                    expiration=expiration, method='GET')
+    return posts
+
+
 @app.route('/unfollow/<user_id_to_unfollow>')
 def unfollow(user_id_to_unfollow):
     id_token = request.cookies.get("token")
@@ -63,6 +85,8 @@ def unfollow(user_id_to_unfollow):
             current_user_id = claims['user_id']
             # unfollow the user
             User.unfollow_user(current_user_id, user_id_to_unfollow)
+            User.updateFollowersList(
+                current_id_user=user_id_to_unfollow, user_id_remove_from_follower=current_user_id)
 
         except ValueError as exc:
             error_message = str(exc)
@@ -76,6 +100,7 @@ def follow(user_id_to_follow):
     id_token = request.cookies.get("token")
     error_message = None
     claims = None
+    userDetails = None
 
     if id_token:
         try:
@@ -85,7 +110,8 @@ def follow(user_id_to_follow):
             # follow the user
             User.follow_user(current_user_id, user_id_to_follow)
             # update followers list of the user followed
-            User.update_follower(user_id_followed = user_id_to_follow,followed_by_id = current_user_id)
+            User.update_follower(
+                user_id_followed=user_id_to_follow, followed_by_id=current_user_id)
 
         except ValueError as exc:
             error_message = str(exc)
@@ -101,6 +127,7 @@ def searchUsers():
     error_message = None
     claims = None
     users = None
+    userDetails = None
     following_list = None
     if id_token:
         try:
@@ -114,15 +141,16 @@ def searchUsers():
             users = User.search_users(query)
 
             following_list = User.get_following(user_id)
+            userDetails = User.getUserDetails(claims['user_id'])
             for user in users:
                 if user['id'] not in following_list:
-                    print(user['name'],'is not followed by you')
+                    print(user['name'], 'is not followed by you')
                 else:
-                    print(user['name'],'is followed by you')
+                    print(user['name'], 'is followed by you')
         except ValueError as exc:
             error_message = str(exc)
 
-    return render_template('search_users.html', users=users, user = user_id,following_list = following_list)
+    return render_template('search_users.html', users=users, userDetails=userDetails, following_list=following_list)
 
 
 @app.route('/create_post', methods=['POST'])
@@ -131,7 +159,7 @@ def create_post():
     error_message = None
     claims = None
     result = None
-    user_info = None
+    userDetails = None
 
     if id_token:
         try:
@@ -172,6 +200,7 @@ def displayProfile():
     error_message = None
     claims = None
     posts = None
+    userDetails = None
 
     if id_token:
         try:
@@ -183,7 +212,7 @@ def displayProfile():
             query.add_filter('user_id', '=', user_id)
             query.order = ['-created_at']
             posts = list(query.fetch())
-
+            userDetails = User.getUserDetails(claims['user_id'])
             # Retrieve the image Blob for each post and add it to the post object
             for post in posts:
                 # Get the blob name from the datastore entity
@@ -198,7 +227,7 @@ def displayProfile():
             following_list_length = len(following_list)
         except ValueError as exc:
             error_message = str(exc)
-    return render_template('profile.html', user=claims, error_message=error_message, posts=posts,following_list_length = following_list_length)
+    return render_template('profile.html', userDetails=userDetails, user=claims, error_message=error_message, posts=posts, following_list_length=following_list_length)
 
 
 @app.route('/addPost')
@@ -211,10 +240,10 @@ def addPost():
         try:
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
-
+            userDetails = User.getUserDetails(claims['user_id'])
         except ValueError as exc:
             error_message = str(exc)
-    return render_template('add_post.html', user=claims, error_message=error_message)
+    return render_template('add_post.html', userDetails=userDetails, user=claims, error_message=error_message)
 
 
 @app.route('/')
@@ -223,7 +252,7 @@ def root():
     error_message = None
     claims = None
     posts = None
-    user_info = None
+    userDetails = None
 
     if id_token:
         try:
@@ -233,10 +262,13 @@ def root():
             if name:
                 name = name.lower()
             User.create_user(claims['user_id'], name, claims['email'])
-
+            userDetails = User.getUserDetails(claims['user_id'])
+            posts = get_posts_for_user_and_following(claims['user_id'])
+            for post in posts:
+                print('posts are: ',posts)
         except ValueError as exc:
             error_message = str(exc)
-    return render_template('index.html', user=claims, error_message=error_message)
+    return render_template('index.html', userDetails=userDetails, error_message=error_message)
 
 
 if __name__ == '__main__':
