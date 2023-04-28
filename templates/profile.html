@@ -5,9 +5,36 @@
         <a class="nav-link" href="#"><p><strong>Followers:</strong> 100</p></a>
     </li>
     <li class="nav-item followList">
-        <a class="nav-link" href="#"><p><strong>Following:</strong> 50</p></a>
+        <a class="nav-link" href="#"><p><strong>Following:</strong> {{following_list_length}}</p></a>
     </li>
 </ul>
+{% endblock %}
+{% block username %}
+<li class="nav-item">
+    <a class="nav-link" href="{{url_for('displayProfile')}}">{{user.name.lower()}}</a>
+</li>
+{% endblock %}
+{% block login_menu %}
+{% if user %}
+<li class="nav-item">
+    <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #141212;" id="logout">Logout</button>
+ </li>
+{% elif not user %}
+<li class="nav-item">
+    <button class="nav-link btn btn-link" style="outline: none; font-size: 16px; margin-top: -2px; color: #0e0b0b;" id="logout">Login</button>
+ </li>
+{% endif %}
+
+{% endblock %}
+{% block searchUser %}
+<li class="nav-item">
+    <form class="d-flex">
+        <input class="form-control me-2" type="search"
+            placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success"
+            type="submit">Search</button>
+    </form>
+</li>
 {% endblock %}
 {% block content %}
   <div class="container mt-5">

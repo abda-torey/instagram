@@ -45,17 +45,17 @@
                     {% block navfollow %}
                     {% endblock %}
                     <ul class="navbar-nav">
+                        {% block username %}
+                        
+                        {% endblock %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{url_for('displayProfile')}}">Profile</a>
                         </li>
-                        <li class="nav-item">
-                            <form class="d-flex">
-                                <input class="form-control me-2" type="search"
-                                    placeholder="Search" aria-label="Search">
-                                <button class="btn btn-outline-success"
-                                    type="submit">Search</button>
-                            </form>
-                        </li>
+                        {% block login_menu %}
+                        {% endblock %}
+                        {%block searchUser%}
+                        {% endblock %}
+                       
                     </ul>
                 </div>
             </div>

@@ -1,7 +1,7 @@
-from datetime import datetime,timezone
+from datetime import datetime, timezone
 import pytz
 import datetime
-
+from models.user import User
 import random
 import uuid
 from google.cloud import storage
@@ -27,8 +27,7 @@ def format_timesince(dt, default='just now'):
     """
     if dt is None:
         return ''
-    
-    
+
     # Get the current datetime in UTC
     now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
     created_at_aware = dt.replace(tzinfo=pytz.UTC)
@@ -47,26 +46,83 @@ def format_timesince(dt, default='just now'):
             return '%d %s ago' % (period, singular if period == 1 else plural)
     return default
 
+
 app.jinja_env.filters['timesince'] = format_timesince
 
 
-def create_user(user_id, name, email):
-    entity_key = datastore_client.key('Users', user_id)
+@app.route('/unfollow/<user_id_to_unfollow>')
+def unfollow(user_id_to_unfollow):
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
 
-    entity = datastore_client.get(entity_key)
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            current_user_id = claims['user_id']
+            # unfollow the user
+            User.unfollow_user(current_user_id, user_id_to_unfollow)
 
-    if entity is not None:
-        return
+        except ValueError as exc:
+            error_message = str(exc)
 
-    entity = datastore.Entity(key=entity_key)
-    entity.update({
+    # redirect back to the search results page
+    return redirect(url_for('displayProfile'))
 
-        'name': name,
-        'email': email,
-        'following': [],
-        'followers': []
-    })
-    datastore_client.put(entity)
+
+@app.route('/follow/<user_id_to_follow>')
+def follow(user_id_to_follow):
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            current_user_id = claims['user_id']
+            # follow the user
+            User.follow_user(current_user_id, user_id_to_follow)
+            # update followers list of the user followed
+            User.update_follower(user_id_followed = user_id_to_follow,followed_by_id = current_user_id)
+
+        except ValueError as exc:
+            error_message = str(exc)
+
+    # redirect back to the search results page
+    return redirect(url_for('displayProfile'))
+
+
+@app.route('/search_user', methods=['POST'])
+def searchUsers():
+
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+    users = None
+    following_list = None
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            user_id = claims['user_id']
+            query = request.form['query']
+            if query:
+                query = query.lower()
+
+            users = User.search_users(query)
+
+            following_list = User.get_following(user_id)
+            for user in users:
+                if user['id'] not in following_list:
+                    print(user['name'],'is not followed by you')
+                else:
+                    print(user['name'],'is followed by you')
+        except ValueError as exc:
+            error_message = str(exc)
+
+    return render_template('search_users.html', users=users, user = user_id,following_list = following_list)
 
 
 @app.route('/create_post', methods=['POST'])
@@ -138,10 +194,11 @@ def displayProfile():
                     expiration = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
                     post['image_url'] = blob.generate_signed_url(
                         expiration=expiration, method='GET')
-
+            following_list = User.get_following(user_id)
+            following_list_length = len(following_list)
         except ValueError as exc:
             error_message = str(exc)
-    return render_template('profile.html', user=claims, error_message=error_message, posts=posts)
+    return render_template('profile.html', user=claims, error_message=error_message, posts=posts,following_list_length = following_list_length)
 
 
 @app.route('/addPost')
@@ -175,7 +232,7 @@ def root():
             name = request.cookies.get("name")
             if name:
                 name = name.lower()
-            create_user(claims['user_id'], name, claims['email'])
+            User.create_user(claims['user_id'], name, claims['email'])
 
         except ValueError as exc:
             error_message = str(exc)
