@@ -9,3 +9,21 @@
     margin-top: 20px;
     
   }
+   .caption{
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 15px; 
+      margin-top: 3px; 
+    }
+    .username{
+      font-family:monospace;
+      font-weight: bold;
+    }
+    .card-post{
+      width:80%;
+      height: 50%;
+      align-content: center;
+      margin-left: 80px;
+    }
+    .comment-box{
+      margin-top: 8px;
+    }

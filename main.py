@@ -49,18 +49,32 @@ def format_timesince(dt, default='just now'):
 
 app.jinja_env.filters['timesince'] = format_timesince
 
+# update a post's comment
+def updatePostComments(post_id,new_comment):
+    key = datastore_client.key('Post',int(post_id))
+    post = datastore_client.get(key)
+    if post is None:
+        return
+    comments = post.get('comments', [])
+    comments.append(new_comment)
 
+    # Update the post entity with the new comments
+    post['comments'] = comments
+    datastore_client.put(post)
+
+
+# retrirve the posts for the user and all the users they follow
 def get_posts_for_user_and_following(user_id):
     following = User.get_following(user_id)
+    print(len(following))
     following.append(user_id)  # Include user's own posts as well
     posts = []
     for user in following:
-        user_key = datastore_client.key('Users', user)
         query = datastore_client.query(kind='Post')
-        query.add_filter('user_id', '=', user_key)
+        query.add_filter('user_id', '=', user)
         query.order = ['-created_at']
-        posts = list(query.fetch())
-        for post in posts:
+        user_posts = list(query.fetch())
+        for post in user_posts:
             # Get the blob name from the datastore entity
             blob_name = post.get('image_blob')
             if blob_name:
@@ -69,6 +83,7 @@ def get_posts_for_user_and_following(user_id):
                 expiration = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
                 post['image_url'] = blob.generate_signed_url(
                     expiration=expiration, method='GET')
+        posts.extend(user_posts)
     return posts
 
 
@@ -153,6 +168,34 @@ def searchUsers():
     return render_template('search_users.html', users=users, userDetails=userDetails, following_list=following_list)
 
 
+@app.route('/add_comment',methods=['POST'])
+def add_comment():
+    id_token = request.cookies.get("token")
+    error_message = None
+    claims = None
+
+    if id_token:
+        try:
+            claims = google.oauth2.id_token.verify_firebase_token(
+                id_token, firebase_request_adapter)
+            userDetails = User.getUserDetails(claims['user_id'])
+            post_id = request.form['post_id']
+            comment = request.form['comment_text']
+            new_comment = {
+                'user_id': claims['user_id'],
+                'username': userDetails['name'],
+                'comment_text': comment,
+                'created_at': datetime.datetime.utcnow()
+                }
+            print(comment)
+            print('post ID is:', post_id)
+            print('this my newComment', new_comment)
+            updatePostComments(post_id,new_comment)
+        except ValueError as exc:
+            error_message = str(exc)
+    return redirect(url_for('root'))
+
+
 @app.route('/create_post', methods=['POST'])
 def create_post():
     id_token = request.cookies.get("token")
@@ -166,6 +209,7 @@ def create_post():
             claims = google.oauth2.id_token.verify_firebase_token(
                 id_token, firebase_request_adapter)
             user_id = claims['user_id']
+            userDetails = User.getUserDetails(user_id)
             # Get the image file and caption from the form data
             post_image = request.files['postImage']
             post_caption = request.form['postCaption']
@@ -177,8 +221,10 @@ def create_post():
             # Store the post caption and blob name in Google Cloud Datastore
             post_entity = datastore.Entity(key=datastore_client.key('Post'))
             post_entity['user_id'] = user_id
+            post_entity['username'] = userDetails['name']
             post_entity['image_blob'] = blob.name
             post_entity['caption'] = post_caption
+            post_entity['comments'] = []
             post_entity['created_at'] = datetime.datetime.utcnow()
             datastore_client.put(post_entity)
 
@@ -263,12 +309,13 @@ def root():
                 name = name.lower()
             User.create_user(claims['user_id'], name, claims['email'])
             userDetails = User.getUserDetails(claims['user_id'])
+
             posts = get_posts_for_user_and_following(claims['user_id'])
-            for post in posts:
-                print('posts are: ',posts)
+
+            
         except ValueError as exc:
             error_message = str(exc)
-    return render_template('index.html', userDetails=userDetails, error_message=error_message)
+    return render_template('index.html',posts = posts, userDetails=userDetails, error_message=error_message)
 
 
 if __name__ == '__main__':

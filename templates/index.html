@@ -35,24 +35,41 @@
     <h1 class="text-center mb-4">User Posts</h1>
     <div class="row justify-content-center">
         {% for post in posts %}
-        <div class="col-md-5">
-            <div class="card mb-4">
+        <div class="col-md-7 ">
+            <div class="card mb-4 card-post">
                 <img src="{{ post.image_url }}" class="card-img-top" alt="Post Image" style="max-height: 300px; object-fit: cover;">
                 <div class="card-body">
-                    <h5 class="card-title">{{ post.caption }}</h5>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <p class="card-text username">{{ post.username }}</small></p>
+                        </div>
+                        <div class="col-sm-9">
+                            <h5 class="caption">{{ post.caption }}</h5>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-6">
-                            <a href="#" class="btn btn-light btn-sm">
-                                <i class="far fa-comment"></i> {{ post.comments }}
-                            </a>
+                            <button type="button" class="btn btn-light btn-sm comment-button" data-post-id="{{ post.key.id }}">
+                                <i class="far fa-comment"></i>
+                            </button>
                         </div>
                         <div class="col-6 text-right">
                             <a href="#" class="btn btn-light btn-sm">
                                 <i class="far fa-heart"></i> {{ post.likes }}
                             </a>
                         </div>
+                        <div class="row comment-box">
+                            <div class="col-sm-12">
+                              <form class="comment-form" style="display: none;" method="post" action="/add_comment">
+                                <input type="hidden" name="post_id" value="{{ post.key.id }}">
+                                <input type="text" class="form-control comment-input" name="comment_text">
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">Post Comment</button>
+                              </form>
+                            </div>
+                          </div>
                     </div>
                 </div>
             </div>
@@ -62,4 +79,14 @@
 </div>
 
 {% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+      $(".comment-button").click(function() {
+        var postId = $(this).data("post-id");
+        $(".comment-form").toggle();
+      });
+    });
+    </script>
 {% endblock %}
