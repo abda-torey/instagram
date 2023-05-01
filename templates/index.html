@@ -61,17 +61,36 @@
                                 <i class="far fa-heart"></i> {{ post.likes }}
                             </a>
                         </div>
-                        <div class="row comment-box">
-                            <div class="col-sm-12">
-                              <form class="comment-form" style="display: none;" method="post" action="/add_comment">
-                                <input type="hidden" name="post_id" value="{{ post.key.id }}">
-                                <input type="text" class="form-control comment-input" name="comment_text">
-                                <button type="submit" class="btn btn-primary btn-sm mt-2">Post Comment</button>
-                              </form>
-                            </div>
-                          </div>
                     </div>
+                    <div class="row comment-box" id="comment-box-{{ post.key.id }}" style="display: none;">
+                        <div class="col-sm-12">
+                            {% if post.comments %}
+                            {% for comment in post.comments[0:5] %}
+                            <p>{{ comment.username }}:{{ comment.comment_text }}</p>
+                             {% endfor %}
+                             {% if post.comments|length > 5 %}
+                             <button type="button" class="btn btn-link more-comments" data-post-id="{{ post.key.id }}">View more comments</button>
+                             <div class="row more-comment-box" id="more-comment-box-{{ post.key.id }}" style="display: none;">
+                                <div class="col-sm-12">
+                                    {% for comment in post.comments[5:] %}
+                                    <p>{{ comment.username }}:{{ comment.comment_text }}</p>
+                                     {% endfor %}
+                                </div>
+                            </div>
+                             {% endif %}
+                            {% endif %}
+                            
+                            <form class="comment-form"  method="post" action="/add_comment">
+                                <input type="hidden" name="post_id" value="{{ post.key.id }}">
+                                <input type="text" class="form-control comment-input" name="comment_text" maxlength="200">
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">Post Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    
                 </div>
+                
             </div>
         </div>
         {% endfor %}
@@ -83,10 +102,17 @@
 {% block scripts %}
 <script>
     $(document).ready(function() {
-      $(".comment-button").click(function() {
-        var postId = $(this).data("post-id");
-        $(".comment-form").toggle();
-      });
+        $(".comment-button").click(function() {
+            var postId = $(this).data("post-id");
+            $("#comment-box-" + postId).toggle();
+        });
+
+        $(".more-comments").click(function() {
+            var postId = $(this).data("post-id");
+            $("#more-comment-box-" + postId).toggle();
+            $(this).addClass("clicked");
+        });
+
     });
     </script>
 {% endblock %}

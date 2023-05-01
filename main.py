@@ -76,6 +76,9 @@ def get_posts_for_user_and_following(user_id):
         user_posts = list(query.fetch())
         for post in user_posts:
             # Get the blob name from the datastore entity
+            # Reverse the order of the comments array
+            comments = post.get('comments', [])
+            post['comments'] = list(reversed(comments))
             blob_name = post.get('image_blob')
             if blob_name:
                 blob = storage_client.bucket(

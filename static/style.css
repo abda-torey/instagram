@@ -5,7 +5,7 @@
     margin-top: 20px;
   }
   .followList{
-    color:red;
+    color:#4708cf;
     margin-top: 20px;
     
   }
@@ -27,3 +27,6 @@
     .comment-box{
       margin-top: 8px;
     }
+    .more-comments.clicked {
+      display: none;
+  }
