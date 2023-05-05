@@ -7,7 +7,7 @@ datastore_client = datastore.Client()
 
 
 class User:
-    def create_user(user_id, name, email):
+    def create_user(user_id, email):
         # Check if email already exists
         query = datastore_client.query(kind='Users')
         query.add_filter('email', '=', email)
@@ -26,13 +26,30 @@ class User:
         entity = datastore.Entity(key=entity_key)
         entity.update({
 
-            'name': name,
             'email': email,
             'following': [],
             'followers': []
         })
         datastore_client.put(entity)
+    def updateProfileName(user_id, profile_name, username):
+        query = datastore_client.query(kind='Users')
+        query.add_filter('username', '=', username)
+        result = list(query.fetch())
+        if len(result) > 0:
+            raise ValueError('Username already exists')
 
+        entity_key = datastore_client.key('Users', user_id)
+        user_entity = datastore_client.get(entity_key)
+
+        user_entity['profile_name'] = profile_name
+        user_entity['username'] = username
+        datastore_client.put(user_entity)
+
+        return True
+
+
+   
+        
     def getUserDetails(user_id):
         entity_key = datastore_client.key('Users', user_id)
         entity = datastore_client.get(entity_key)
@@ -95,20 +112,22 @@ class User:
             return False
     # search for users
 
-    def search_users(query):
+    def search_users(query,user_id):
         query = query.lower()
         query_filter = datastore_client.query(kind='Users')
-        query_filter.add_filter('name', '>=', query)
-        query_filter.add_filter('name', '<', query + u'\ufffd')
+        query_filter.add_filter('profile_name', '>=', query)
+        query_filter.add_filter('profile_name', '<', query + u'\ufffd')
         query_results = query_filter.fetch()
 
         users = []
         for result in query_results:
-            users.append({
-                'id': result.key.id_or_name,
-                'name': result['name'],
-                'email': result['email']
-            })
+            if result.key.id_or_name != user_id:
+                users.append({
+                    'id': result.key.id_or_name,
+                    'username': result['username'],
+                    'profile_name': result['profile_name'],
+                    'email': result['email']
+                })
 
         return users
 
@@ -122,3 +141,13 @@ class User:
         following = user.get('following', [])
 
         return following
+    def get_followers(user_id):
+        user_key = datastore_client.key('Users', user_id)
+        user = datastore_client.get(user_key)
+
+        if user is None:
+            return []
+
+        followers = user.get('followers', [])
+
+        return followers

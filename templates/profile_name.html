@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1>Enter Profile Name</h1>
+    <br>
+    {% if error_message %}
+    <div id="error-alert" class="alert alert-danger" role="alert">{{ error_message }}</div>
+    {% endif %}
+    <form method="POST" action="/add_profile_name">
+        <div class="form-group">
+            <label for="profile-name">Profile Name</label>
+            <input type="text" class="form-control" id="profile-name"
+                name="profile_name" required>
+            {% if user_id %}
+            <input type="text" class="form-control" id="user-id" name="user_id"
+                hidden value="{{user_id}}">
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="user-name">UserName</label>
+            <input type="text" class="form-control" id="user-name"
+                name="username" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+
+</div>
+
+{% endblock %}

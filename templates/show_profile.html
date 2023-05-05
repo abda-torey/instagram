@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block username %}
+{% if userDetails %}
+<li class="nav-item">
+    
+    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.username}}</a>
+    
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{url_for('displayProfile')}}">Profile</a>
+</li>
+{% endif %}
+{% endblock %}
+{% block login_menu %}
+{% if userDetails %}
+<li class="nav-item">
+    <button class="nav-link btn btn-link" style="outline: none; font-size: 16px;
+        margin-top: -2px; color: #141212;" id="logout">Logout</button>
+</li>
+{% elif not userDetails %}
+<li class="nav-item">
+    <button class="nav-link btn btn-link" style="outline: none; font-size: 16px;
+        margin-top: -2px; color: #0e0b0b;" id="logout">Login</button>
+</li>
+{% endif %}
+
+{% endblock %}
+{% block searchUser %}
+<li class="nav-item">
+    <form method="post" action="/search_user" class="d-flex">
+        <input class="form-control me-2" type="search"
+            placeholder="Search" aria-label="Search" name="query">
+        <button class="btn btn-outline-success"
+            type="submit">Search</button>
+    </form>
+</li>
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <hr>
+    <div class="row">
+        <div class="col-md-4">
+            {% if user_beingChecked_details %}
+            <p>{{user_beingChecked_details.username}}</p>
+            <span class="text-muted">{{user_beingChecked_details.profile_name}}</span>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <span><strong>Following:</strong>
+                {{user_beingChecked_followingListLength}}
+                <strong> Followers:</strong>
+                {{user_beingChecked_followersListLength}}</span>
+
+        </div>
+        <div class="col-md-2">
+            {% if user_profile_beingchecked in following_list %}
+            <a type="button" class="btn btn-primary"
+                href="{{url_for('unfollow',user_id_to_unfollow=
+                user_profile_beingchecked)}}">UnFollow</a>
+            {% else %}
+            <a type="button" class="btn btn-primary"
+                href="{{url_for('follow',user_id_to_follow=
+                user_profile_beingchecked)}}">Follow</a>
+            {% endif %}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        {% for post in posts %}
+        <div class="col-md-5">
+            <div class="card mb-3">
+                <img src="{{ post.image_url }}" class="card-img-top">
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.caption }}</h5>
+                    <p class="card-text">Posted {{ post.created_at|timesince }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -30,3 +30,12 @@
     .more-comments.clicked {
       display: none;
   }
+  .post-card{
+    width: 80%;
+    border: 1px solid rgb(20, 20, 31);
+    border-radius: 5px;
+  }
+  .posted-text{
+    color: rgb(45, 86, 149);
+    font-size: small;
+  }

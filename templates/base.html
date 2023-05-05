@@ -23,11 +23,7 @@
     </head>
     <body>
         <nav class="navbar navbar-expand-md navbar-light bg-light">
-            <div class="container-fluid">
-                <div class="profile-picture mb-3">
-                    <img src="{{ url_for('static', filename='Images/pic.jpeg') }}" class="rounded-circle img-thumbnail profile-pic">
-                </div>
-                
+            <div class="container-fluid">        
                 <a class="navbar-brand" href="{{url_for('root')}}">Home</a>
                 <button class="navbar-toggler" type="button"
                     data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -48,9 +44,7 @@
                         {% block username %}
                         
                         {% endblock %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{url_for('displayProfile')}}">Profile</a>
-                        </li>
+                        
                         {% block login_menu %}
                         {% endblock %}
                         {%block searchUser%}

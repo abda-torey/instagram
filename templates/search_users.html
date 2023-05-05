@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block username %}
+{% if userDetails %}
 <li class="nav-item">
-    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.name}}</a>
+    
+    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.username}}</a>
+    
 </li>
+<li class="nav-item">
+    <a class="nav-link" href="{{url_for('displayProfile')}}">Profile</a>
+</li>
+{% endif %}
 {% endblock %}
 {% block login_menu %}
 {% if user %}
@@ -34,12 +41,15 @@
     {% for user in users %}
     <div class="card mx-auto mb-3" style="max-width: 540px;">
       <div class="row g-0">
-        <div class="col-md-3">
+        <!-- <div class="col-md-3">
           <img src="{{ url_for('static', filename='Images/pic.jpeg') }}" class="rounded-circle img-thumbnail profile-pic" alt="...">
-        </div>
+        </div> -->
         <div class="col-md-9">
           <div class="card-body d-flex justify-content-between align-items-center">
-            <h5 class="card-title">{{ user.name }}</h5>
+            <a href="{{url_for('show_profile',user_id = user.id)}}" style="text-decoration: none;"><div>
+            <h5 class="card-title">{{ user.username }}</h5>
+            <span><span class="text-muted">{{ user.profile_name }}</span></span>
+          </div></a>
             {% if user['id']  in following_list %}
             <a type="button" class="btn btn-primary" href="{{url_for('unfollow',user_id_to_unfollow = user.id)}}">UnFollow</a>
             {% else %}

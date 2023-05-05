@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
 {% block username %}
+{% if userDetails %}
 <li class="nav-item">
-    {% if userDetails %}
-    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.name}}</a>
-    {% endif %}
+    
+    <a class="nav-link" href="{{url_for('displayProfile')}}">{{userDetails.username}}</a>
+    
 </li>
+<li class="nav-item">
+    <a class="nav-link" href="{{url_for('displayProfile')}}">Profile</a>
+</li>
+{% endif %}
 {% endblock %}
 {% block login_menu %}
 {% if userDetails %}
@@ -40,12 +45,16 @@
                 <img src="{{ post.image_url }}" class="card-img-top" alt="Post Image" style="max-height: 300px; object-fit: cover;">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-sm-2">
+                        <div class="col-sm-3">
                             <p class="card-text username">{{ post.username }}</small></p>
                         </div>
-                        <div class="col-sm-9">
+                        <div class="col-sm-7">
                             <h5 class="caption">{{ post.caption }}</h5>
                         </div>
+                        <div class="col-sm-2">
+                            <p class="card-text posted-text">{{post.created_at|timesince }}</p>
+                        </div>
+
                     </div>
                 </div>
                 
